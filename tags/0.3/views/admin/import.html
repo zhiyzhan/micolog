@@ -1,0 +1,118 @@
+﻿{% extends "base.html" %}
+{% block header %}
+<script src='/static/js/jquery.blockUI.js' type="text/javascript"></script>
+<script type="text/javascript">
+{%if postback%}
+$(document).ready(function() {
+  $.getJSON("{{self.blog.baseurl}}/admin/import_next", next_result);
+  function next_result(json)
+  {
+  	$('#list').prepend('<li>'+json[0]+':'+json[1]+'</li>')
+  	if (json[2])
+  	{
+  		 $.getJSON("{{self.blog.baseurl}}/admin/import_next", next_result);
+  	}
+
+  }
+
+});
+{%else%}
+
+	$(document).ajaxError(function(request, settings){
+       $('#bmsg').html('Error<br/><input type="button" value="Ok" onclick="$.unblockUI()"></input>');
+	   $('.blockUI').css('cursor','');
+   });
+
+	 function init_blog()
+	 {
+	    $.blockUI({ message: '<h3 id="bmsg"><img src="/static/images/busy.gif" /> Init data now...</h3>' });
+	 	$.getJSON("{{self.blog.baseurl}}/admin/do/init_blog", function(json){
+	 		  $('#bmsg').html(json+'<br/><input type="button" value="Ok" onclick="$.unblockUI()"></input>');
+	 		  $('.blockUI').css('cursor','');
+
+	 		});
+	 }
+
+	 function update_link()
+	 {
+	    $.blockUI({ message: '<h3 id="bmsg"><img src="/static/images/busy.gif" /> Rebuild URLs now...</h3>' });
+	 	$.getJSON("{{self.blog.baseurl}}/admin/do/updatelink",{'linkfmt':$('#link_format').val()}, function(json){
+	 		  $('#bmsg').html(json+'<br/><input type="button" value="Ok" onclick="$.unblockUI()"></input>');
+	 		  $('.blockUI').css('cursor','');
+
+
+	 		});
+	 }
+	 function update_comments()
+	 {
+	    $.blockUI({ message: '<h3 id="bmsg"><img src="/static/images/busy.gif" /> Refresh comments now...</h3>' });
+	 	$.getJSON("{{self.blog.baseurl}}/admin/do/updatecomments", function(json){
+	 		   $('#bmsg').html(json+'<br/><input type="button" value="Ok" onclick="$.unblockUI()"></input>');
+	 		   $('.blockUI').css('cursor','');
+
+	 		});
+	 }
+
+{%endif%}
+</script>
+
+{% endblock %}
+ {% block content %}
+	{%if postback%}
+	Importing．．．：<br>
+	<ul id="list"></ul>
+
+
+
+	{%else%}
+    <div class="wrap">
+            <h2>Import from wordpress</h2>
+
+<p>
+	<form action="" method='post' enctype="multipart/form-data">
+	<table class="form-table">
+	 <tr valign="top">
+                <th scope="row">Permalink Structure：</th>
+                <td><input type="text" name="link_format"  size="65" value="{{ blog.link_format }}" >
+                <br>Available parameters：%(year)s , %(month)s , %(day)s , %(postname)s , %(post_id)s
+               </td>
+                </tr>
+	  <tr valign="top">
+                <th scope="row">Wordpress export file (WXR file)：</th>
+                <td><input type="file" name="wpfile">
+               </td>
+                </tr>
+
+
+	</table>
+    <p>
+	<input type="submit" value=" 　Import　 "/>{%if error%} <span id="import_msg" class="error">{{error}}</span>{%endif%}
+    </p>
+</form>
+</p>
+    <div class="wrap">
+            <h2>Tools（Careless use of it will be dangerous!）</h2>
+            </div>
+
+<div style="">
+<div class="grid">
+<input type='button' value='Init datas' id='init_blog' onclick='init_blog()'/> It will delete  all posts, pages and comments.
+
+</div>
+<div class="grid">
+<input type='button' value='Update comment count' id='update_comments' onclick='update_comments()'/>It will refresh the number of comments for each entry.
+
+</div>
+<div class="grid">
+
+
+<input type='text' id='link_format' value='{{self.blog.link_format}}' style='width:550px'/>
+<br>Available parameters：%(year)s , %(month)s , %(day)s , %(postname)s , %(post_id)s<br><input type='button' value='Rebuild URL  ' id='update_link' onclick='update_link()'/>The URL of all entries (post or page) will be rebuild.
+
+
+</div>
+
+</div>
+</div>
+{%endif%}
+{% endblock %}
