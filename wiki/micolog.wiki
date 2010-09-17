@@ -1,5 +1,5 @@
-#summary One-sentence summary of this page.
 #labels 日本語,blog,cms,gae,python
+#micologに関する日本語情報
 
 = micologについて =
 
