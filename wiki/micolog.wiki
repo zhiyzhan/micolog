@@ -1,4 +1,4 @@
-#labels 日本語,blog,cms,gae,python
+#labels 日本語,blog,cms,gae,python,ブログ
 #micologに関する日本語情報
 
 = micologについて =
