@@ -3,7 +3,7 @@
 
 = micologについて =
 
-Micologはpythonで構築されたblogシステムです。GAE(google app engine)上で運用できます。 It is hosted at http://code.google.com/p/micolog/
+Micologはpythonで構築されたブログシステムです。GAE(google app engine)上で運用できます。 It is hosted at http://code.google.com/p/micolog/
 プラグインを活用することにより、GAE上で、企業向け、個人向けのCMSやblogとして無料でサイト運営をすることができます。
 
 
