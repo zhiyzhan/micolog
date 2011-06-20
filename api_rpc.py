@@ -54,7 +54,7 @@ def post_struct(entry):
 
 
 	struct = {
-		'postid': entry.key().id(),
+		'postid': str(entry.key().id()),
 		'title': entry.title,
 		'link': entry.fullurl,
 		'permaLink': entry.fullurl,
@@ -90,7 +90,7 @@ def page_struct(entry):
 
 
 	struct = {
-		'page_id': entry.key().id(),
+		'page_id': str(entry.key().id()),
 		'title': entry.title,
 		'link': entry.fullurl,
 		'permaLink': entry.fullurl,
@@ -789,8 +789,15 @@ def pingback_ping(source_uri, target_uri):
 	if not target_uri.startswith(blog_url):
 		raise Fault(32, 'The specified target URL does not exist.')
 	path_info = target_uri[len(blog_url):]
+	if path_info.startswith('?'):
+		try: postid = path_info.split('&')[0].split('=')[1]
+		except: postid=None
+		pingback_post(response,source_uri,target_uri,postid=postid)
+	else:
+		path = path_info.split('?')[0]
+		pingback_post(response,source_uri,target_uri,slug=path)
 
-	pingback_post(response,source_uri,target_uri,path_info)
+	#pingback_post(response,source_uri,target_uri,path_info)
 	try:
 		logging.info('Micolog pingback succeed!')
 		return "Micolog pingback succeed!"
@@ -805,10 +812,12 @@ def get_excerpt(response, url_hint, body_limit=1024 * 512):
 	not be calculated it will be `None`.
 	"""
 	contents = response.content[:body_limit]
-	if 'charset=gb2312' in contents[:200].lower():
+	if 'charset=gb2312' in contents[:400].lower():
 		contents = contents.decode('gb2312').encode('UTF-8')
-	elif 'charset=gbk"' in contents[:200].lower():
+	elif 'charset=gbk"' in contents[:400].lower():
 		contents = contents.decode('GBK').encode('UTF-8')
+	elif 'charset=big5' in contents[:400].lower():
+		contents = contents.decode('big5')
 	try:
 		contents=contents.decode('utf-8')
 	except:
@@ -846,9 +855,12 @@ def get_excerpt(response, url_hint, body_limit=1024 * 512):
 	bits.extend(after.split())
 	return title, u'[…] %s […]' % u' '.join(bits)
 
-def pingback_post(response,source_uri, target_uri, slug):
+def pingback_post(response,source_uri, target_uri, slug=None, postid=None):
 	"""This is the pingback handler for posts."""
-	entry = Entry.all().filter("published =", True).filter('link =', slug).get()
+	if slug:
+		entry = Entry.all().filter("published =", True).filter('link =', slug).get()
+	else:
+		entry = Entry.all().filter("published =", True).filter('post_id =', postid).get()
 	#use allow_trackback as allow_pingback
 	if entry is None or not entry.allow_trackback:
 		raise Fault(33, 'no such post')

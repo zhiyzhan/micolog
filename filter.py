@@ -41,7 +41,7 @@ from app.html_filter import html_filter
 
 plog_filter = html_filter()
 plog_filter.allowed = {
-		'a': ('href', 'target', 'name'),
+		'a': ('href', 'target', 'name', 'rel'),
 		'b': (),
 		'blockquote': (),
 		'pre': (),
@@ -67,6 +67,7 @@ plog_filter.allowed = {
 		'li': (),
 		'br': (),
 		'hr': (),
+		'code':(),
 		}
 
 plog_filter.no_close += ('br',)

@@ -46,6 +46,11 @@ indexes:
   properties:
   - name: email
   - name: date
+
+- kind: Comment
+  properties:
+  - name: email
+  - name: date
     direction: desc
 
 - kind: Comment

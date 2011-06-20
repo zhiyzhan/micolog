@@ -91,6 +91,9 @@ class BasePublicPage(BaseRequestHandler):
 			.order('-date')
 
 class MainPage(BasePublicPage):
+	def head(self,page=1):
+		if g_blog.allow_pingback :
+			self.response.headers['X-Pingback']="%s/rpc"%str(g_blog.baseurl)
 	def get(self,page=1):
 		postid=self.param('p')
 		if postid:
@@ -99,6 +102,8 @@ class MainPage(BasePublicPage):
 				return doRequestHandle(self,SinglePost(),postid=postid)  #singlepost.get(postid=postid)
 			except:
 				return self.error(404)
+		if g_blog.allow_pingback :
+			self.response.headers['X-Pingback']="%s/rpc"%str(g_blog.baseurl)
 		self.doget(page)
 
 	def post(self):
@@ -158,7 +163,7 @@ class entriesByCategory(BasePublicPage):
 			entries,links=Pager(query=entries,items_per_page=20).fetch(page_index)
 			self.render('category',{'entries':entries,'category':cats[0],'pager':links})
 		else:
-			self.error(414,slug)
+			self.error(404,slug)
 
 class archive_by_month(BasePublicPage):
 	@cache()
@@ -277,7 +282,7 @@ class SinglePost(BasePublicPage):
 '''
 
 		if not g_blog.allow_trackback:
-			self.response.out.write(self.error % "Trackback denied.")
+			self.response.out.write(error % "Trackback denied.")
 			return
 		self.response.headers['Content-Type'] = "text/xml"
 		if postid:
@@ -340,7 +345,7 @@ class SinglePost(BasePublicPage):
 			return
 
 		comment=Comment(author=blog_name,
-				content="<strong>"+title[:250]+"...</strong><br/>" +
+				content="...<strong>"+title[:250]+"</strong> " +
 						excerpt[:250] + '...',
 				weburl=coming_url,
 				entry=entry)
@@ -360,7 +365,7 @@ class SinglePost(BasePublicPage):
 
 		maxpage=count / g_blog.comments_per_page + ( count % g_blog.comments_per_page and 1 or 0 )
 		if maxpage==1:
-			return ""
+			return {'nav':"",'current':pindex}
 
 		result=""
 
@@ -403,7 +408,7 @@ class FeedHandler(BaseRequestHandler):
 			last_updated = last_updated.strftime("%a, %d %b %Y %H:%M:%S +0000")
 		for e in entries:
 			e.formatted_date = e.date.strftime("%a, %d %b %Y %H:%M:%S +0000")
-		self.response.headers['Content-Type'] = 'application/rss+xml'
+		self.response.headers['Content-Type'] = 'application/rss+xml; charset=utf-8'
 		self.render2('views/rss.xml',{'entries':entries,'last_updated':last_updated})
 
 class CommentsFeedHandler(BaseRequestHandler):
@@ -415,7 +420,7 @@ class CommentsFeedHandler(BaseRequestHandler):
 			last_updated = last_updated.strftime("%a, %d %b %Y %H:%M:%S +0000")
 		for e in comments:
 			e.formatted_date = e.date.strftime("%a, %d %b %Y %H:%M:%S +0000")
-		self.response.headers['Content-Type'] = 'application/rss+xml'
+		self.response.headers['Content-Type'] = 'application/rss+xml; charset=UTF-8'
 		self.render2('views/comments.xml',{'comments':comments,'last_updated':last_updated})
 
 class SitemapHandler(BaseRequestHandler):
@@ -521,7 +526,7 @@ class Post_comment(BaseRequestHandler):
 							entry=Entry.get(key))
 			if url:
 				try:
-					if not url.startswith(('http://','https://')):
+					if not url.lower().startswith(('http://','https://')):
 						url = 'http://' + url
 					comment.weburl=url
 				except:
@@ -533,9 +538,9 @@ class Post_comment(BaseRequestHandler):
 			info_str='#@#'.join([urlencode(name),urlencode(email),urlencode(url)])
 
 			 #info_str='#@#'.join([name,email,url.encode('utf8')])
-			cookiestr='comment_user=%s;expires=%s;domain=%s;path=/'%( info_str,
-					   (datetime.now()+timedelta(days=100)).strftime("%a, %d-%b-%Y %H:%M:%S GMT"),
-					   ''
+			cookiestr='comment_user=%s;expires=%s;path=/;'%( info_str,
+					   (datetime.now()+timedelta(days=100)).strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+					   
 					   )
 			comment.ip=self.request.remote_addr
 
@@ -712,7 +717,7 @@ def main():
 			('/post_comment',Post_comment),
 			('/page/(?P<page>\d+)', MainPage),
 			('/category/(.*)',entriesByCategory),
-			('/(\d{4})/(\d{2})',archive_by_month),
+			('/(\d{4})/(\d{1,2})',archive_by_month),
 			('/tag/(.*)',entriesByTag),
 			#('/\?p=(?P<postid>\d+)',SinglePost),
 			('/', MainPage),

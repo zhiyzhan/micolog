@@ -177,7 +177,7 @@ class Blog(db.Model):
 
 	domain=db.StringProperty()
 	show_excerpt=db.BooleanProperty(default=True)
-	version=0.74
+	version=0.741
 	timedelta=db.FloatProperty(default=8.0)# hours
 	language=db.StringProperty(default="en-us")
 
@@ -553,9 +553,10 @@ class Entry(BaseModel):
 		cmts = Comment.all().filter('entry =',self).order('date')
 		i=1
 		for comment in cmts:
-			comment.no=i
+			if comment.no != i:
+				comment.no = i
+				comment.store()
 			i+=1
-			comment.store()
 
 	def update_archive(self,cnt=1):
 		"""Checks to see if there is a month-year entry for the
@@ -661,7 +662,8 @@ class Entry(BaseModel):
 			return self._relatepost
 		else:
 			if self.tags:
-				self._relatepost= Entry.gql("WHERE published=True and tags IN :1 and post_id!=:2 order by post_id desc ",self.tags,self.post_id).fetch(5)
+				try: self._relatepost= Entry.gql("WHERE published=True and tags IN :1 and post_id!=:2 order by post_id desc ",self.tags,self.post_id).fetch(5)
+				except: self._relatepost= []
 			else:
 				self._relatepost= []
 			return self._relatepost
@@ -767,8 +769,8 @@ class Comment(db.Model):
 
 
 		self.put()
-		self.entry.commentcount+=1
 		self.comment_order=self.entry.commentcount
+		self.entry.commentcount+=1
 		if (self.ctype == COMMENT_TRACKBACK) or (self.ctype == COMMENT_PINGBACK):
 			self.entry.trackbackcount+=1
 		self.entry.put()
