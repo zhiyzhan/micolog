@@ -17,7 +17,7 @@ from google.appengine.ext import db
 from google.appengine.ext import zipserve
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
-from google.appengine.api.labs import taskqueue
+from google.appengine.api import taskqueue
 from datetime import datetime ,timedelta
 import base64,random,math,zipfile
 from django.utils import simplejson
@@ -490,7 +490,7 @@ class admin_entry(BaseRequestHandler):
 				entry.sticky=sticky
 				if cats:
 
-				   for cate in cats:
+					for cate in cats:
 						c=Category.all().filter('slug =',cate)
 						if c:
 							newcates.append(c[0].key())
@@ -506,7 +506,7 @@ class admin_entry(BaseRequestHandler):
 				self.render2('views/admin/entry.html',vals)
 				if published and entry.allow_trackback and g_blog.allow_pingback:
 					try:
-						autoPingback(entry.fullurl,HTML=content)
+						autoPingback(str(entry.fullurl),HTML=content)
 					except:
 						pass
 			elif action=='edit':
@@ -547,11 +547,6 @@ class admin_entry(BaseRequestHandler):
 					vals.update({'result':True,'msg':smsg%{'link':str(urlencode( entry.link))},'entry':entry})
 
 					self.render2('views/admin/entry.html',vals)
-					if published and entry.allow_trackback and g_blog.allow_pingback:
-						try:
-							autoPingback(entry.fullurl,HTML=content)
-						except:
-							pass
 
 				except:
 					vals.update({'result':False,'msg':_('Error:Entry can''t been saved.')})

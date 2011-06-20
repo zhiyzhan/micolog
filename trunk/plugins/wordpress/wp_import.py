@@ -95,7 +95,7 @@ class import_wordpress:
                                                         date=com.findtext(self.wpns+'comment_date'),
                                                         ip=com.findtext(self.wpns+'comment_author_IP')
                                                         )
-                    entry['comments'].append(comment)
+                        entry['comments'].append(comment)
                 self.entries.append(entry)
             except Exception, e :
                 raise

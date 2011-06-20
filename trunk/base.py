@@ -16,7 +16,7 @@ from django.conf import settings
 settings._target = None
 #from model import g_blog,User
 #activate(g_blog.language)
-from google.appengine.api.labs import taskqueue
+from google.appengine.api import taskqueue
 import wsgiref.handlers
 from mimetypes import types_map
 from datetime import datetime, timedelta
@@ -99,15 +99,15 @@ def cache(key="",time=3600):
 			#arg[0] is BaseRequestHandler object
 
 			if html:
-				 logging.info('cache:'+skey)
-				 response.last_modified =html[1]
-				 ilen=len(html)
-				 if ilen>=3:
+				logging.info('cache:'+skey)
+				response.last_modified =html[1]
+				ilen=len(html)
+				if ilen>=3:
 					response.set_status(html[2])
-				 if ilen>=4:
+				if ilen>=4:
 					for skey,value in html[3].items():
 						response.headers[skey]=value
-				 response.out.write(html[0])
+				response.out.write(html[0])
 			else:
 				if 'last-modified' not in response.headers:
 					response.last_modified = format_date(datetime.utcnow())
